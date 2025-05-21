@@ -72,8 +72,13 @@ const MyRentals: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="calc(100vh - 70px)"
+      >
+        <CircularProgress size={40} />
       </Box>
     );
   }
@@ -83,72 +88,130 @@ const MyRentals: React.FC = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        My Rentals
-      </Typography>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Paper
+        sx={{
+          p: 3,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 4,
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom
+          sx={{ 
+            color: 'primary.main',
+            fontWeight: 700,
+            mb: 3
+          }}
+        >
+          My Rentals
+        </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 3,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                color: 'error.main'
+              }
+            }}
+          >
+            {error}
+          </Alert>
+        )}
 
-      {overdueRentals.length > 0 && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          You have {overdueRentals.length} overdue book{overdueRentals.length > 1 ? 's' : ''}. Please return {overdueRentals.length > 1 ? 'them' : 'it'} as soon as possible.
-        </Alert>
-      )}
+        {overdueRentals.length > 0 && (
+          <Alert 
+            severity="warning" 
+            sx={{ 
+              mb: 3,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                color: 'warning.main'
+              }
+            }}
+          >
+            You have {overdueRentals.length} overdue book{overdueRentals.length > 1 ? 's' : ''}. Please return {overdueRentals.length > 1 ? 'them' : 'it'} as soon as possible.
+          </Alert>
+        )}
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Book Title</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Rented Date</TableCell>
-              <TableCell>Due Date</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rentals.map((rental) => {
-              const status = getRentalStatus(rental);
-              return (
-                <TableRow key={rental._id}>
-                  <TableCell>{rental.book.title}</TableCell>
-                  <TableCell>{rental.book.category}</TableCell>
-                  <TableCell>
-                    {new Date(rental.rentedAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(rental.dueDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={status}
-                      color={getStatusColor(status)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {rental.status === 'active' && (
-                      <Button
-                        variant="contained"
-                        color={status === 'overdue' ? 'error' : 'primary'}
-                        size="small"
-                        onClick={() => handleReturn(rental._id)}
-                      >
-                        Return Book
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Book Title</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Category</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Rented Date</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Due Date</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rentals.map((rental) => {
+                const status = getRentalStatus(rental);
+                return (
+                  <TableRow 
+                    key={rental._id}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      },
+                    }}
+                  >
+                    <TableCell>{rental.book.title}</TableCell>
+                    <TableCell>{rental.book.category}</TableCell>
+                    <TableCell>
+                      {new Date(rental.rentedAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(rental.dueDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={status}
+                        color={getStatusColor(status)}
+                        sx={{ 
+                          fontWeight: 600,
+                          '& .MuiChip-label': {
+                            px: 2
+                          }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {rental.status === 'active' && (
+                        <Button
+                          variant="contained"
+                          color={status === 'overdue' ? 'error' : 'primary'}
+                          size="small"
+                          onClick={() => handleReturn(rental._id)}
+                          sx={{
+                            height: 32,
+                            px: 2,
+                            '&:hover': {
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            }
+                          }}
+                        >
+                          Return Book
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </Container>
   );
 };
