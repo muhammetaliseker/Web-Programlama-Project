@@ -16,16 +16,36 @@ import {
   Chip,
   TextField,
   InputAdornment,
+  TableSortLabel,
 } from '@mui/material';
 import { rentals as rentalsApi } from '../services/api';
 import { Rental } from '../types';
 import SearchIcon from '@mui/icons-material/Search';
+
+type Order = 'asc' | 'desc';
+
+interface HeadCell {
+  id: keyof Rental | 'book.title' | 'book.category' | 'action';
+  label: string;
+  sortable: boolean;
+}
+
+const headCells: HeadCell[] = [
+  { id: 'book.title', label: 'Book Title', sortable: true },
+  { id: 'book.category', label: 'Category', sortable: true },
+  { id: 'rentedAt', label: 'Rented Date', sortable: true },
+  { id: 'dueDate', label: 'Due Date', sortable: true },
+  { id: 'status', label: 'Status', sortable: false },
+  { id: 'action', label: 'Action', sortable: false },
+];
 
 const MyRentals: React.FC = () => {
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [order, setOrder] = useState<Order>('asc');
+  const [orderBy, setOrderBy] = useState<HeadCell['id']>('rentedAt');
 
   useEffect(() => {
     fetchRentals();
@@ -93,15 +113,58 @@ const MyRentals: React.FC = () => {
     };
   };
 
-  const filteredRentals = rentals.filter(rental => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      rental.book.title.toLowerCase().includes(searchLower) ||
-      rental.book.category.toLowerCase().includes(searchLower) ||
-      new Date(rental.rentedAt).toLocaleDateString().includes(searchLower) ||
-      new Date(rental.dueDate).toLocaleDateString().includes(searchLower)
-    );
-  });
+  const handleRequestSort = (property: HeadCell['id']) => {
+    if (!headCells.find(cell => cell.id === property)?.sortable) return;
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const getComparator = (order: Order, orderBy: HeadCell['id']) => {
+    return (a: Rental, b: Rental) => {
+      let aValue: any, bValue: any;
+
+      if (orderBy === 'book.title') {
+        aValue = a.book.title.toLowerCase();
+        bValue = b.book.title.toLowerCase();
+      } else if (orderBy === 'book.category') {
+        aValue = a.book.category.toLowerCase();
+        bValue = b.book.category.toLowerCase();
+      } else if (orderBy === 'action') {
+        return 0;
+      } else {
+        aValue = a[orderBy as keyof Rental];
+        bValue = b[orderBy as keyof Rental];
+      }
+
+      if (orderBy === 'rentedAt' || orderBy === 'dueDate') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      }
+
+      if (bValue < aValue) {
+        return order === 'desc' ? -1 : 1;
+      }
+      if (bValue > aValue) {
+        return order === 'desc' ? 1 : -1;
+      }
+      return 0;
+    };
+  };
+
+  const filteredAndSortedRentals = React.useMemo(() => {
+    const filtered = rentals.filter(rental => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        rental.book.title.toLowerCase().includes(searchLower) ||
+        rental.book.category.toLowerCase().includes(searchLower) ||
+        new Date(rental.rentedAt).toLocaleDateString().includes(searchLower) ||
+        new Date(rental.dueDate).toLocaleDateString().includes(searchLower)
+      );
+    });
+
+    return filtered.sort(getComparator(order, orderBy));
+  }, [rentals, searchTerm, order, orderBy]);
 
   if (loading) {
     return (
@@ -208,16 +271,55 @@ const MyRentals: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Book Title</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Category</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Rented Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Due Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: 'primary.main' }}>Action</TableCell>
+                {headCells.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: 'primary.main',
+                      cursor: headCell.sortable ? 'pointer' : 'default',
+                      '&:hover': {
+                        backgroundColor: headCell.sortable ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                      },
+                      transition: 'background-color 0.2s',
+                      whiteSpace: 'nowrap',
+                      py: 2,
+                    }}
+                  >
+                    {headCell.sortable ? (
+                      <TableSortLabel
+                        active={orderBy === headCell.id}
+                        direction={orderBy === headCell.id ? order : 'asc'}
+                        onClick={() => handleRequestSort(headCell.id)}
+                        sx={{
+                          '&.MuiTableSortLabel-root': {
+                            color: 'primary.main',
+                          },
+                          '&.MuiTableSortLabel-root:hover': {
+                            color: 'primary.dark',
+                          },
+                          '&.Mui-active': {
+                            color: 'primary.main',
+                            '& .MuiTableSortLabel-icon': {
+                              color: 'primary.main',
+                            },
+                          },
+                          '& .MuiTableSortLabel-icon': {
+                            opacity: orderBy === headCell.id ? 1 : 0.5,
+                          },
+                        }}
+                      >
+                        {headCell.label}
+                      </TableSortLabel>
+                    ) : (
+                      headCell.label
+                    )}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredRentals.map((rental) => {
+              {filteredAndSortedRentals.map((rental) => {
                 const status = getRentalStatus(rental);
                 return (
                   <TableRow 
