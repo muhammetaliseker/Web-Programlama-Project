@@ -14,14 +14,18 @@ import {
   CircularProgress,
   Box,
   Chip,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import { rentals as rentalsApi } from '../services/api';
 import { Rental } from '../types';
+import SearchIcon from '@mui/icons-material/Search';
 
 const MyRentals: React.FC = () => {
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchRentals();
@@ -89,6 +93,16 @@ const MyRentals: React.FC = () => {
     };
   };
 
+  const filteredRentals = rentals.filter(rental => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      rental.book.title.toLowerCase().includes(searchLower) ||
+      rental.book.category.toLowerCase().includes(searchLower) ||
+      new Date(rental.rentedAt).toLocaleDateString().includes(searchLower) ||
+      new Date(rental.dueDate).toLocaleDateString().includes(searchLower)
+    );
+  });
+
   if (loading) {
     return (
       <Box 
@@ -118,18 +132,47 @@ const MyRentals: React.FC = () => {
           border: '1px solid rgba(255, 255, 255, 0.2)',
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom
-          sx={{ 
-            color: 'primary.main',
-            fontWeight: 700,
-            mb: 3
-          }}
+        <Box 
+          display="flex" 
+          justifyContent="space-between" 
+          alignItems="center" 
+          mb={3}
+          flexWrap="wrap"
+          gap={2}
         >
-          My Rentals
-        </Typography>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              color: 'primary.main',
+              fontWeight: 700,
+            }}
+          >
+            My Rentals
+          </Typography>
+          <TextField
+            placeholder="Search rentals..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="small"
+            sx={{
+              minWidth: 250,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
 
         {error && (
           <Alert 
@@ -174,7 +217,7 @@ const MyRentals: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rentals.map((rental) => {
+              {filteredRentals.map((rental) => {
                 const status = getRentalStatus(rental);
                 return (
                   <TableRow 
