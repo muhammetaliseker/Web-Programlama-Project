@@ -107,24 +107,6 @@ const AdminBooks: React.FC = () => {
     }
   };
 
-  const handleUpdateStock = async (bookId: string, currentStock: number) => {
-    const newStock = window.prompt('Enter new stock quantity:', currentStock.toString());
-    if (newStock === null) return;
-
-    const quantity = parseInt(newStock, 10);
-    if (isNaN(quantity) || quantity < 0) {
-      setError('Invalid stock quantity');
-      return;
-    }
-
-    try {
-      await booksApi.updateStock(bookId, quantity);
-      fetchBooks();
-    } catch (err) {
-      setError('Failed to update stock');
-    }
-  };
-
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
@@ -149,7 +131,6 @@ const AdminBooks: React.FC = () => {
               book={book}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onUpdateStock={handleUpdateStock}
             />
           </Grid>
         ))}

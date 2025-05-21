@@ -15,7 +15,6 @@ interface BookCardProps {
   onRent?: (bookId: string) => void;
   onEdit?: (book: Book) => void;
   onDelete?: (bookId: string) => void;
-  onUpdateStock?: (bookId: string, quantity: number) => void;
 }
 
 const BookCard: React.FC<BookCardProps> = ({
@@ -23,7 +22,6 @@ const BookCard: React.FC<BookCardProps> = ({
   onRent,
   onEdit,
   onDelete,
-  onUpdateStock,
 }) => {
   const { isAdmin } = useAuth();
 
@@ -49,7 +47,7 @@ const BookCard: React.FC<BookCardProps> = ({
           />
         </Box>
       </CardContent>
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, pt: 0 }}>
         {isAdmin ? (
           <>
             <Button
@@ -64,16 +62,8 @@ const BookCard: React.FC<BookCardProps> = ({
               size="small"
               color="error"
               onClick={() => onDelete?.(book._id)}
-              sx={{ mr: 1 }}
             >
               Delete
-            </Button>
-            <Button
-              size="small"
-              color="secondary"
-              onClick={() => onUpdateStock?.(book._id, book.stockQuantity)}
-            >
-              Update Stock
             </Button>
           </>
         ) : (

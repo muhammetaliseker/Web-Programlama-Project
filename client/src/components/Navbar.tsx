@@ -24,9 +24,11 @@ const Navbar: React.FC = () => {
               <Button color="inherit" component={RouterLink} to="/books">
                 Books
               </Button>
-              <Button color="inherit" component={RouterLink} to="/my-rentals">
-                My Rentals
-              </Button>
+              {!isAdmin && (
+                <Button color="inherit" component={RouterLink} to="/my-rentals">
+                  My Rentals
+                </Button>
+              )}
               {isAdmin && (
                 <Button color="inherit" component={RouterLink} to="/admin/rentals">
                   Rental History
