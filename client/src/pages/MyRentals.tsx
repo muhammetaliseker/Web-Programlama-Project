@@ -62,12 +62,31 @@ const MyRentals: React.FC = () => {
       case 'overdue':
         return 'error';
       case 'active':
-        return 'primary';
-      case 'returned':
         return 'success';
+      case 'returned':
+        return 'info';
       default:
         return 'default';
     }
+  };
+
+  const getStatusStyle = (status: string) => {
+    if (status === 'active') {
+      return {
+        backgroundColor: '#32CD32', // Lime color
+        color: 'white',
+        fontWeight: 600,
+        '& .MuiChip-label': {
+          px: 2
+        }
+      };
+    }
+    return {
+      fontWeight: 600,
+      '& .MuiChip-label': {
+        px: 2
+      }
+    };
   };
 
   if (loading) {
@@ -178,12 +197,7 @@ const MyRentals: React.FC = () => {
                       <Chip
                         label={status}
                         color={getStatusColor(status)}
-                        sx={{ 
-                          fontWeight: 600,
-                          '& .MuiChip-label': {
-                            px: 2
-                          }
-                        }}
+                        sx={getStatusStyle(status)}
                       />
                     </TableCell>
                     <TableCell>
