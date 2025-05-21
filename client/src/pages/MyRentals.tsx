@@ -13,6 +13,7 @@ import {
   Alert,
   CircularProgress,
   Box,
+  Chip,
 } from '@mui/material';
 import { rentals as rentalsApi } from '../services/api';
 import { Rental } from '../types';
@@ -46,6 +47,29 @@ const MyRentals: React.FC = () => {
     }
   };
 
+  const isOverdue = (dueDate: string) => {
+    return new Date(dueDate) < new Date();
+  };
+
+  const getRentalStatus = (rental: Rental) => {
+    if (rental.status === 'returned') return 'returned';
+    if (isOverdue(rental.dueDate)) return 'overdue';
+    return 'active';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'overdue':
+        return 'error';
+      case 'active':
+        return 'primary';
+      case 'returned':
+        return 'success';
+      default:
+        return 'default';
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -53,6 +77,10 @@ const MyRentals: React.FC = () => {
       </Box>
     );
   }
+
+  const overdueRentals = rentals.filter(rental => 
+    rental.status === 'active' && isOverdue(rental.dueDate)
+  );
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -63,6 +91,12 @@ const MyRentals: React.FC = () => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {overdueRentals.length > 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You have {overdueRentals.length} overdue book{overdueRentals.length > 1 ? 's' : ''}. Please return {overdueRentals.length > 1 ? 'them' : 'it'} as soon as possible.
         </Alert>
       )}
 
@@ -79,31 +113,39 @@ const MyRentals: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rentals.map((rental) => (
-              <TableRow key={rental._id}>
-                <TableCell>{rental.book.title}</TableCell>
-                <TableCell>{rental.book.category}</TableCell>
-                <TableCell>
-                  {new Date(rental.rentedAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  {new Date(rental.dueDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{rental.status}</TableCell>
-                <TableCell>
-                  {rental.status === 'active' && (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      onClick={() => handleReturn(rental._id)}
-                    >
-                      Return Book
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+            {rentals.map((rental) => {
+              const status = getRentalStatus(rental);
+              return (
+                <TableRow key={rental._id}>
+                  <TableCell>{rental.book.title}</TableCell>
+                  <TableCell>{rental.book.category}</TableCell>
+                  <TableCell>
+                    {new Date(rental.rentedAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(rental.dueDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={status}
+                      color={getStatusColor(status)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {rental.status === 'active' && (
+                      <Button
+                        variant="contained"
+                        color={status === 'overdue' ? 'error' : 'primary'}
+                        size="small"
+                        onClick={() => handleReturn(rental._id)}
+                      >
+                        Return Book
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
