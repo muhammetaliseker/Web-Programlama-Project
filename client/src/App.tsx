@@ -176,9 +176,7 @@ const AppRoutes: React.FC = () => {
         />
         <Route 
           path="/" 
-          element={
-            user ? <Navigate to="/books" /> : <Navigate to="/login" />
-          } 
+          element={<Navigate to="/login" />} 
         />
       </Routes>
     </Router>
